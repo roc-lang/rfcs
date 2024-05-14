@@ -32,7 +32,7 @@ Roc includes the following features:
 
    An unboxed value is compiled to the representation you would likely choose
    by hand, if you were only optimizing for the runtime cost of a single value.
-   For example, a Roc value `[A {f: U8}]` of type
+   For example, a Roc value `A {f: 1u8}` of type
    `[A { f : U8 }, B { g : U16 }]` is represented at runtime in a form
    equivalent to the C struct
 
@@ -241,7 +241,7 @@ See below on how to implement this error message.
 A suitable re-implementation of this function would be
 
 ```roc
-LinkedList a := [Nil, Cons a (RecursiveType a)]
+LinkedList a := [Nil, Cons a (LinkedList a)]
 
 length = \@LinkedList list ->
    when list is
@@ -356,7 +356,7 @@ Such an algorithm would pick the normal form
 ```
 Rec : [ From2 { from1 : <Rec> }, End ]
 Rec1 : Rec
-Rec2 : Rec
+Rec2 : { from1 : Rec }
 ```
 
 However, I'm not sure how well this algorithm works in practice, whether it is

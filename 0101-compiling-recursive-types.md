@@ -34,7 +34,7 @@ Roc includes the following features:
    by hand, if you were only optimizing for the runtime cost of a single value.
    For example, a Roc value `A {f: 1u8}` of type
    `[A { f : U8 }, B { g : U16 }]` is represented at runtime in a form
-   equivalent to the C struct
+   equal to the C struct
 
    ```c
    #include <stdint.h>
@@ -111,6 +111,30 @@ val2 = ...
 expect val1 == val2
 ```
 
+This program type checks because Roc allows unification of recursive types if
+they are equal up to their position of recursion. By this I mean that two
+structurally recursive types unify if the infinite expansion of their recursion
+point would produce equal types. This is standardly known as the "equirecursive"
+rule for recursive types.
+
+For example, given the program above, we have that
+
+```
+  { from1 : Rec1 }
+= { from1 : [ From2 { from1 : <Rec1> }, End ] }
+= { from1 : [ From2 { from1 : [ From2 { from1 : ... }, End ] }, End ] }
+
+and
+
+  Rec2
+= { from1 : [ From2 <Rec2>, End ] }
+= { from1 : [ From2 { from1 : [ From2 <Rec2>, End ] }, End ] }
+= { from1 : [ From2 { from1 : [ From2 { from1 : ... }, End ] }, End ] }
+```
+
+so `{ from1 : Rec1 }` and `Rec2` are determined to be equivalent, compatible
+types.
+
 Unfortunately these two values have different runtime layouts. In particular,
 
 ```
@@ -136,14 +160,12 @@ discussed later.
 ## Discussion
 
 The key insight here is that types can be equivalent, but layouts must be equal.
-The equivalence, I mean that types must be equal if you unroll their place of
-recursion indefinitely.
 
 There are only three ways to reconcile this:
 
 1. Types must be equal, not just equivalent.
 2. Equivalent types must produce equal layouts.
-3. Layouts must only be equivalent, not just equal.
+3. Layouts should be compared by equivalence rather than equality.
 
 Unless I am missing something, the solution space is bound to one of these three
 approaches.
@@ -273,7 +295,7 @@ ensure there is only one form of the opaque type.
 
 Adjust the typing rules for recursive types to unify two types if their
 recursive name (opaque type) is equal, and all type arguments unify. Remove all
-logic for checking type equivalence up to position of recursion.
+logic for checking recurisve type equality up to position of recursion.
 
 Note that recursive lambda sets are also nominal, because they must be named by
 the lambda they appear under. Adjust the definition of lambda set types, if

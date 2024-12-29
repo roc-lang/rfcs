@@ -140,7 +140,7 @@ main =
 where `main` is the entry-point of the program (exposed to the host, or an
 expect).
 
-**solve**
+### solve
 
 Suppose we have already parsed this program and resolved symbols
 (canonicalization). The next step is to infer the type of this program. I won't
@@ -175,11 +175,11 @@ main =
   { x1, x2 }   # : { x1: I64, x2: Str }
 ```
 
-**ab_well_formed**
+### ab_well_formed
 
 Skipped for now
 
-**type_specialize**
+### type_specialize
 
 The next thing we're going to do is get rid of all generalized types in this
 program. This is necessary that calls to `apply` can operate on a concrete
@@ -214,7 +214,7 @@ main =
   { x1, x2 }
 ```
 
-**function_lift**
+### function_lift
 
 Next, we lift up all nested functions to the top-level. We'll want to allocate a
 new variable for all values that the function captures, and pass those to the
@@ -258,7 +258,7 @@ main =
   { x1, x2 }
 ```
 
-**function_solve**
+### function_solve
 
 We're now ready to start what we need for lambda-set specialization, which I'll
 call function specialization from now on.
@@ -333,7 +333,7 @@ main =
   { x1, x2 }
 ```
 
-**function_specialize**
+### function_specialize
 
 To perform function specialization, we create copies of generic higher-order
 functions (HOFs) for concerete usage, and then fix-up the call sites to reference the copy.
@@ -423,7 +423,7 @@ main =
   { x1, x2 }
 ```
 
-**lower_ir**
+### lower_ir
 
 Finally, we have a first-order program with no generic types and no generic
 calls. We can convert this to a lower-level IR that is can then be used to add
@@ -629,7 +629,7 @@ resolved because the entrypoint of a Roc program is of a concrete type.
 
 ## type_specialize
 
-**General idea**
+### General idea
 
 Up to this point, each procedure has relied on runnning on a program in
 topological dependency order. To specialize a program, we must turn around and
@@ -920,7 +920,7 @@ fn lower_ast(
 
 </details>
 
-**Storage of types**
+### Storage of types
 
 The best way to store types is in a similar union-find format that is used to
 store variables in passes up to this point. This enables the preservation of
@@ -945,7 +945,7 @@ The particular implementation doesn't matter too much and should be opaque.
 `TypeVariable` can be an index into an array in `TypeContext`, `TypeVariable`
 could be a reference-counted pointer to a `Type`, etc.
 
-**Comparing specialization keys for equivalence, and stable specialization keys**
+### Comparing specialization keys for equivalence, and stable specialization keys
 
 When checking if a specialization key exists, it is important to compare keys for
 equivalence of their types, not just equality of pointers.
@@ -1080,7 +1080,7 @@ types are first forced to be nominal - which has other benefits in type checking
 and error reporting as well. Unless or until that change is made, I suggest
 going with strict checking of equivalence to de-duplicate specializations.
 
-**Creating orthogonal type and symbol states during specialization**
+### Creating orthogonal type and symbol states during specialization
 
 Symbols and types in the source program have a 1:many relationship relative to
 symbols and types after specialization. This is the reason for creating new
@@ -1171,7 +1171,7 @@ keeping track of a mapping `abwf_type_map : abwf::TypeVariable ->
 abwf::TypVariable` that re-uses already-cloned type variables, again to preserve
 relationships between types in the function body.
 
-**No generalization besides on the top-level**
+### No generalization besides on the top-level
 
 The procedure here relies on the fact that there are no generalized functions
 within a top-level function scope. I believe the current state of Roc is that
@@ -1182,7 +1182,7 @@ Supporting generalized functions within a scope is also possible. The easiest
 way to do so would be to run function lifting before type specialization (see
 below).
 
-**Handling abilities**
+### Handling abilities
 
 During type specialization is also the best time to resolve the target of
 ability calls. The relevant change in the sample code above would be
@@ -1250,7 +1250,7 @@ As such, type specialization in the presence of ad-hoc polymorphic requires
 ad-hoc re-entry into modules, and there is no longer a strong invariant that
 dependencies form an acyclic graph with regard to the modules they come from.
 
-**Useful debugging tools**
+### Useful debugging tools
 
 - A pretty-printer for the resulting AST, run snapshot tests with this (print
     symbols uniquely)
@@ -1262,7 +1262,7 @@ dependencies form an acyclic graph with regard to the modules they come from.
     Useful for making sure that symbols are correctly instantiated to fresh
     symbols when a generic function is specialized multiple times.
 
-**Recovering parallelization**
+### Recovering parallelization
 
 One simple way to recover parallel compilation, if it is required, is to lump
 all modules together before type specialization, but submit specialization jobs
@@ -1273,7 +1273,7 @@ context interner. However, global state may also have a thread-local cache.
 
 I would suggest an implementation without parallelism first.
 
-**Recovering caching**
+### Recovering caching
 
 One way to implement coarce caching in this context is to keep track of the
 transient specializations submitted from a particular function. This requires
